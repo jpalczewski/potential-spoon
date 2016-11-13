@@ -80,6 +80,11 @@ main:
 	# So,we have whole file in memory. Let's rock!
 	#
 	
+	# And let's close the fh
+	move $a0, $s6
+	li $v0, 16
+	syscall
+	
 	exit(0)
 	
 error_nofile:
