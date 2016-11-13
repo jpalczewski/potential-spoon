@@ -32,12 +32,16 @@ main:
 	#
 	# Step 1 - loading BMP header
 	#
+	
+	#we open the file twice, in order to load whole file to memory second time.
 	li $v0, 13
 	la $a0, fin
 	li $a1, 0
 	li $a2, 0
 	syscall
 	move $s6, $v0
+	
+	
 	
 	#if $v0 is less than zero - something is wrong.
 	bltz $s6, error_nofile
@@ -61,10 +65,20 @@ main:
 	# Step 2 - we possibly have good file, so let's read it into memory. 
 	#
 	lw $a0, bfSize
+	sub $a0, $a0, BMP_HEADER_LEN # MARS didn't load from beginning, so we should consider data loaded above.
 	li $v0, 9
 	syscall
 	
-	move $t0, $v0
+	move $t0, $v0 # now in $t0 is our buffer for whole file
+	move $a2, $a0 # data re-use from previous syscall
+	move $a1, $t0 # setting our buffer
+	move $a0, $s6 # and unused file pointer
+	li $v0, 14
+	syscall
+	
+	#
+	# So,we have whole file in memory. Let's rock!
+	#
 	
 	exit(0)
 	
