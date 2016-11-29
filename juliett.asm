@@ -8,8 +8,9 @@
 	#
 	
 	#files - input, output
-fin:	.asciiz "/home/erxyi/Projekty/_16Z/ARKO/potential-spoon/input.bmp"	# input file
-fout:	.asciiz "output.bmp"	# output file
+#fin:	.asciiz "/home/erxyi/Projekty/_16Z/ARKO/potential-spoon/input.bmp"	# input file
+fin:	.asciiz "Z:\\Biblioteka\\Projekty\\potential-spoon\\input.bmp"
+fout:	.asciiz "Z:\\Biblioteka\\Projekty\\potential-spoon\\output.bmp"	# output file
 	
 	# c value
 c_real:	.word	123
@@ -24,6 +25,12 @@ max_im:		.word	789
 	
 	.text
 	
+#
+# Dokumentacja, rejestry:
+# s6 - FILE* input;
+# s7 - FILE* output;
+
+	
 	
 	.globl main
 main:
@@ -33,7 +40,7 @@ main:
 	# Step 1 - loading BMP header
 	#
 	
-	#we open the file twice, in order to load whole file to memory second time.
+	#let's open both files
 	li $v0, 13
 	la $a0, fin
 	li $a1, 0
@@ -41,10 +48,17 @@ main:
 	syscall
 	move $s6, $v0
 	
+	li $v0, 13
+	la $a0, fout
+	li $a1, 1
+	li $a2, 0
+	syscall
+	move $s7, $v0
 	
 	
 	#if $v0 is less than zero - something is wrong.
 	bltz $s6, error_nofile
+	bltz $s7, error_nofile
 	
 	#lets read first 30 bytes of file. 
 	move $a0, $s6
@@ -80,8 +94,52 @@ main:
 	# So,we have whole file in memory. Let's rock!
 	#
 	
+	#first - let see where bmp begins
+	lw $s4, bfOffBits
+	sub $s4, $s4, BMP_HEADER_LEN
+	
+	#and how much we have to read. 
+	lw $s5, bfSize
+	
+	#calculating padding
+	lw $s2, biWidth
+	and $s3, $s2, 0x3 # %4
+	neg $s3, $s3
+	addi, $s3, $s3, 4
+	and $s3, $s3, 0x3 # if-less solution.
+	
+	
+	add $t1, $s4, $t0 #beginning of the bitmap 
+	
+before_processing_next_line:
+	
+	
+	
+
+
+processing_finished:
+	
+	#Writing whole file in memory back to disk.
+	li $v0, 15
+	move $a0, $s7
+	la $a1, bmp_header_buffer
+	li $a2, BMP_HEADER_LEN
+	syscall	
+	
+	li $v0, 15
+	move $a0, $s7
+	move $a1, $t0
+	lw $a2, bfSize
+	sub $a2, $a2 BMP_HEADER_LEN
+	syscall
+	
+	
 	# And let's close the fh
 	move $a0, $s6
+	li $v0, 16
+	syscall
+	
+	move $a0, $s7
 	li $v0, 16
 	syscall
 	
@@ -91,7 +149,8 @@ error_nofile:
 	die(ENOFILE)
 
 error_badfile:
-	die(EBADHEADER)	
+	die(EBADHEADER)
+		
 	.data
 	
 hello_string:		.asciiz "Juliett set generator\nby jpalczewski\n"
