@@ -8,9 +8,12 @@
 	#
 	
 	#files - input, output
-#fin:	.asciiz "/home/erxyi/Projekty/_16Z/ARKO/potential-spoon/input.bmp"	# input file
-fin:	.asciiz "Z:\\Biblioteka\\Projekty\\potential-spoon\\input.bmp"
-fout:	.asciiz "Z:\\Biblioteka\\Projekty\\potential-spoon\\output.bmp"	# output file
+fin:	.asciiz "/home/erxyi/Projekty/_16Z/ARKO/potential-spoon/input.bmp"	# input file
+fout:	.asciiz "/home/erxyi/Projekty/_16Z/ARKO/potential-spoon/output.bmp"	# input file
+
+
+#fin:	.asciiz "Z:\\Biblioteka\\Projekty\\potential-spoon\\input.bmp"
+#fout:	.asciiz "Z:\\Biblioteka\\Projekty\\potential-spoon\\output.bmp"	# output file
 	
 	# c value
 c_real:	.word	123
@@ -25,10 +28,31 @@ max_im:		.word	789
 	
 	.text
 	
-#
-# Dokumentacja, rejestry:
-# s6 - FILE* input;
-# s7 - FILE* output;
+
+
+#mini-dokuemntacja
+
+#przeznaczenie rejestrów:
+#s0-s7 - zmienne/bufory/rejestry trzymane w całej aplikacji
+#t0-t9 - do wykonania jednej, "atomowej" operacji
+
+#$s0 - FILE* input;
+#$s1 - FILE* output;
+#$s2 - char* buffer;
+#$s3 - 
+#$s4 - 
+#$s5 -
+#$s6 - 
+#$s7 - 
+
+#$t0 - 
+#$t1 - 
+#$t2 - 
+#$t3 - 
+#$t4 - 
+#$t5 -
+#$t6 - 
+#$t7 - 
 
 	
 	
@@ -46,22 +70,22 @@ main:
 	li $a1, 0
 	li $a2, 0
 	syscall
-	move $s6, $v0
+	move $s0, $v0
 	
 	li $v0, 13
 	la $a0, fout
 	li $a1, 1
 	li $a2, 0
 	syscall
-	move $s7, $v0
+	move $s1, $v0
 	
 	
 	#if $v0 is less than zero - something is wrong.
-	bltz $s6, error_nofile
-	bltz $s7, error_nofile
+	bltz $s0, error_nofile
+	bltz $s1, error_nofile
 	
 	#lets read first 30 bytes of file. 
-	move $a0, $s6
+	move $a0, $s0
 	li $v0, 14
 	la $a1, bmp_header_buffer
 	li $a2, BMP_HEADER_LEN
@@ -82,11 +106,12 @@ main:
 	sub $a0, $a0, BMP_HEADER_LEN # MARS didn't load from beginning, so we should consider data loaded above.
 	li $v0, 9
 	syscall
+	move $s2, $v0 # now in $t0 is our buffer for whole file
 	
-	move $t0, $v0 # now in $t0 is our buffer for whole file
+	
 	move $a2, $a0 # data re-use from previous syscall
-	move $a1, $t0 # setting our buffer
-	move $a0, $s6 # and unused file pointer
+	move $a1, $s2 # setting our buffer
+	move $a0, $s0 # and unused file pointer
 	li $v0, 14
 	syscall
 	
@@ -94,22 +119,23 @@ main:
 	# So,we have whole file in memory. Let's rock!
 	#
 	
+	
 	#first - let see where bmp begins
-	lw $s4, bfOffBits
-	sub $s4, $s4, BMP_HEADER_LEN
+	#lw $t0, bfOffBits
+	#sub $t0, $t0, BMP_HEADER_LEN
 	
 	#and how much we have to read. 
-	lw $s5, bfSize
+#	lw $t1, bfSize
 	
-	#calculating padding
-	lw $s2, biWidth
-	and $s3, $s2, 0x3 # %4
-	neg $s3, $s3
-	addi, $s3, $s3, 4
-	and $s3, $s3, 0x3 # if-less solution.
+#	#calculating padding
+#	lw $s2, biWidth
+#	and $s3, $s2, 0x3 # %4
+#	neg $s3, $s3
+#	addi, $s3, $s3, 4
+#	and $s3, $s3, 0x3 # if-less solution.
 	
 	
-	add $t1, $s4, $t0 #beginning of the bitmap 
+#	add $t1, $s4, $t0 #beginning of the bitmap 
 	
 before_processing_next_line:
 	
@@ -121,25 +147,25 @@ processing_finished:
 	
 	#Writing whole file in memory back to disk.
 	li $v0, 15
-	move $a0, $s7
+	move $a0, $s1
 	la $a1, bmp_header_buffer
 	li $a2, BMP_HEADER_LEN
 	syscall	
 	
 	li $v0, 15
-	move $a0, $s7
-	move $a1, $t0
+	move $a0, $s1
+	move $a1, $s2
 	lw $a2, bfSize
-	sub $a2, $a2 BMP_HEADER_LEN
+	sub $a2, $a2 , BMP_HEADER_LEN
 	syscall
 	
 	
 	# And let's close the fh
-	move $a0, $s6
+	move $a0, $s0
 	li $v0, 16
 	syscall
 	
-	move $a0, $s7
+	move $a0, $s1
 	li $v0, 16
 	syscall
 	
