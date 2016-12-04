@@ -8,22 +8,29 @@
 	#
 	 
 	#files - input, output
-fin:	.asciiz "/home/erxyi/Projekty/_16Z/ARKO/potential-spoon/input.bmp"	# input file
+fin:	.asciiz "/home/erxyi/Projekty/_16Z/ARKO/potential-spoon/input_small.bmp"	# input file
 fout:	.asciiz "/home/erxyi/Projekty/_16Z/ARKO/potential-spoon/output2.bmp"	# input file
 
 
 #fin:	.asciiz "Z:\\Biblioteka\\Projekty\\potential-spoon\\input.bmp"
 #fout:	.asciiz "Z:\\Biblioteka\\Projekty\\potential-spoon\\output.bmp"	# output file
-	
+
+		
 	# c value
-c_real:	.word	123
-c_im:	.word	456
+.align 4
+c_x:	.word	000001000
+c_y:	.word	000003500
+step:	.word	000001000
+
+.align 4
+stored_x: .space 4
+stored_y: .space 4
+stored_s0: .space 4
+stored_s1: .space 4
+
 	
-	# min-max
-min_real: 	.word	789
-min_im:		.word	123
-max_real:	.word	345
-max_im:		.word	789	
+#min_real: 	.word	789
+#min_im:		.word	123
 	
 	
 	.text
@@ -142,6 +149,11 @@ main:
 	
 	lw $s5, biHeight
 	
+	
+	#step -1: uwalnianie s0 i s1
+	#sw $s0, stored_s0
+	#sw $s1, stored_s1
+	
 	#Let start processing	
 	# $t0 - offset, $t0 - buffer+offset, line counter
 	#$t1 - line start
@@ -158,31 +170,88 @@ main:
 	addu $t2, $t1, $s4
 	
 	li $t0, 0
+	li $t6, 0
+	li $t7, 0
+	lw $t8, step
 line_start:
 
+	#Usable registers: $t6, $t7, $t8, $t9, $s6, $s7
+	# julia points
+	# t6 - x, t7 - y, t8 - step, t9 - n, t4, t5, s6, s7 - posrednie/kolory
+	
+	#x,y = rog obrazka
+	# x += step przy przejsciu w lewo, x = x_begin, y+= step przy przejsciu do nastepnej linii
+	# 
+	#z = t6,t7 potem
+	
+	
+	
+	
+	#wyrzucamy x,y z pamieci w celu odzyskania rejestrow
+	
+	li $t9, 255
+	
+	sw $t6, stored_x
+	sw $t7, stored_y
+	
+	push_s()
+	
+	#complex_abs_squared_integer(%dest, %re, %im)
+	complex_abs_squared_integer($s6,$t6, $t7)
+	bgt $s6, 100, colors
+	
+	#przygotowania do wejscia do petli z ucieczka - ladujemy c
+	
+	lw $t4, c_x
+	lw $t5, c_y
+
+	#complex_multiply(%dest_re, %dest_im, %a_re, %a_im, %b_re, %b_im)
+julia_loop:
+	complex_multiply($t6, $t7, $t6, $t7, $t6, $t7)
+	add $t6, $t6, $t4
+	add $t7, $t7, $t5
+	complex_abs_squared_integer($s6,$t6, $t7)
+	subu $t9, $t9, 5
+
+	bltu $t9, 5, colors
+	bge $s6, 100, colors
+	b julia_loop
+	
+	
+colors:
+
 	lbu $t3,  ($t1) #blue
-	lbu $t4, 1($t1) #green
-	lbu $t5, 2($t1) #red
-	
-	
-	li $t3, 0x00 
-	li $t4, 0x00
-	li $t5, 0xff
-	
-	
-	
+	move $t3, $t9
 	sb $t3,	 ($t1)
-	sb $t4, 1($t1)
-	sb $t5, 2($t1)
+
+
+	lbu $t3,  1($t1) #green
+	move $t3, $t9
+	sb $t3,	 1($t1)
+	
+	lbu $t3,  2($t1) #red
+	move $t3, $t9
+	sb $t3,	 2($t1)
+	
+	
+	lw $t6, stored_x
+	lw $t7, stored_y
+	
+	add $t6, $t6, $t8
 	
 	
 	addiu $t1, $t1, 3
 	bne $t1, $t2, line_start
 
 line_stop:
+	pop_s()
 	addu $t1, $t1, $s3 #add padding
 	addu $t2, $t1, $s4
-	addiu $t0, $t0, 1 
+	addiu $t0, $t0, 1
+	
+	li $t6, 0
+	add $t7, $t7, $t8
+	
 	bne $t0, $s5, line_start
 
 	
