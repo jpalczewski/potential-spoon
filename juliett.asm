@@ -6,10 +6,10 @@
 	# 
 	#user-defined parameters
 	#
-	
+	 
 	#files - input, output
 fin:	.asciiz "/home/erxyi/Projekty/_16Z/ARKO/potential-spoon/input.bmp"	# input file
-fout:	.asciiz "/home/erxyi/Projekty/_16Z/ARKO/potential-spoon/output.bmp"	# input file
+fout:	.asciiz "/home/erxyi/Projekty/_16Z/ARKO/potential-spoon/output2.bmp"	# input file
 
 
 #fin:	.asciiz "Z:\\Biblioteka\\Projekty\\potential-spoon\\input.bmp"
@@ -39,9 +39,9 @@ max_im:		.word	789
 #$s0 - FILE* input;
 #$s1 - FILE* output;
 #$s2 - char* buffer;
-#$s3 - 
-#$s4 - 
-#$s5 -
+#$s3 - int padding;
+#$s4 - int width*3
+#$s5 - int height
 #$s6 - 
 #$s7 - 
 
@@ -120,25 +120,71 @@ main:
 	#
 	
 	
-	#first - let see where bmp begins
-	#lw $t0, bfOffBits
-	#sub $t0, $t0, BMP_HEADER_LEN
+	# Step one - padding - multiply&branch-free solution
 	
-	#and how much we have to read. 
-#	lw $t1, bfSize
+	# $t0 - biWidth
+	# $t1 - 3*biWidth
+	# $t2 - 3*biWidth % 4
+	# $t3 - 4 - $t2
 	
-#	#calculating padding
-#	lw $s2, biWidth
-#	and $s3, $s2, 0x3 # %4
-#	neg $s3, $s3
-#	addi, $s3, $s3, 4
-#	and $s3, $s3, 0x3 # if-less solution.
+	lw $t0, biWidth
+	sll, $t1, $t0, 1
+	addu $t1, $t1, $t0
+	
+	and $t2, $t1, 0x03
+	
+	li $t3, 4
+	subu $t3, $t3, $t2
+	
+	move $s3, $zero
+	movn $s3, $t3, $t2
+	move $s4, $t1
+	
+	lw $s5, biHeight
+	
+	#Let start processing	
+	# $t0 - offset, $t0 - buffer+offset, line counter
+	#$t1 - line start
+	#$t2 - line end	
+	#$t2 - line counter
+	#$t3 - pixel[0]
+	#$t4 - pixel[1]
+	#$t5 - pixel[2]
+	lw  $t0, bfOffBits 
+	subu $t0, $t0, BMP_HEADER_LEN
+	addu $t0, $s2, $t0
+	
+	move $t1, $t0
+	addu $t2, $t1, $s4
+	
+	li $t0, 0
+line_start:
+
+	lbu $t3,  ($t1) #blue
+	lbu $t4, 1($t1) #green
+	lbu $t5, 2($t1) #red
 	
 	
-#	add $t1, $s4, $t0 #beginning of the bitmap 
+	li $t3, 0x00 
+	li $t4, 0x00
+	li $t5, 0xff
 	
-before_processing_next_line:
 	
+	
+	sb $t3,	 ($t1)
+	sb $t4, 1($t1)
+	sb $t5, 2($t1)
+	
+	
+	addiu $t1, $t1, 3
+	bne $t1, $t2, line_start
+
+line_stop:
+	addu $t1, $t1, $s3 #add padding
+	addu $t2, $t1, $s4
+	addiu $t0, $t0, 1 
+	bne $t0, $s5, line_start
+
 	
 	
 

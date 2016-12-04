@@ -2,6 +2,11 @@
 
 .eqv BMP_HEADER_LEN 30
 
+#without align: it works
+#with align: it theoretticaly should be independent and works too
+
+.align 4
+align:   .space 2
 bmp_header_buffer:
 bfType:		.space 2
 bfSize:		.space 4
