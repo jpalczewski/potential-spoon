@@ -245,12 +245,12 @@ colors:
 
 line_stop:
 	pop_s()
-	addu $t1, $t1, $s3 #add padding
+	addu $t1, $t1, $s3 #add bmp padding
 	addu $t2, $t1, $s4
 	addiu $t0, $t0, 1
 	
 	li $t6, 0
-	add $t7, $t7, $t8
+	add $t7, $t7, $t8 #add y padding
 	
 	bne $t0, $s5, line_start
 
