@@ -58,57 +58,44 @@
 	
 	.end_macro
 	
-	.macro complex_square_and_add(%a, %b, %rec, %imz)
+	.macro complex_square_and_add(%a, %b, %rec, %imc)
 	#Dokumenta
-	li $s2, 0x0001000 # by by multiplying c by one we can add it in hi&lo.
-	move $s1, %a
+	li $s4, 0x01000000 # by by multiplying c by one we can add it in hi&lo.
+	move $s3, %a
 	mult %a, %a
 	msub %b, %b
-	madd $s2, %rec
+	madd $s4, %rec
 	
-	mfhi $s5
-	mflo $s6
-	and $s5, 0xFFFF
-	sll $s5, $s5, 16
-	srl $s6, $s6, 16
-	or %a, $s5, $s6
+	mflo $s1
+	mfhi $s2
+	sll $s2, $s2, 8
+	srl $s1, $s1, 24
+	or  %a, $s1, $s2
 	
-	mult $s1, %b
-	madd $s2, %imz
-	mfhi $s5
-	mflo $s6
-	and $s5, 0xFFFF
-	sll $s5, $s5, 16
-	srl $s6, $s6, 16
-	or %b, $s5, $s6
+	mult $s3, %b
+	madd $s4, %imc
+	mflo $s1
+	mfhi $s2
+	sll $s2, $s2, 8
+	srl $s1, $s1, 24
+	or  %b, $s1, $s2
+	sll, %b, %b, 1
 	
 	.end_macro
 	
 	.macro complex_abs_squared_integer(%dest, %re, %im)
+	mult %re, %re
+	madd %im, %im
 	
-	move $s1, %re
-	mult $s1, $s1
 	mflo $s1
 	mfhi $s2
-	srl $s1, $s1, 16
-	and $s2, 0xFFFF
-	sll $s2, $s2, 16
-	or $s1, $s1, $s2
-	addu %dest, $s1, $zero
-	
-	move $s1, %im
-	mult $s1, $s1
-	mflo $s1
-	mfhi $s2
-	srl $s1, $s1, 16
-	and $s2, 0xFFFF
-	sll $s2, $s2, 16
-	or $s1, $s1, $s2
-	addu %dest, $s1, %dest
-	
-	srl %dest, %dest, 16
-	
+	sll $s2, $s2, 8
+	srl $s1, $s1, 24
+	or  %dest, $s1, $s2
+	srl %dest, %dest, 24
 	.end_macro
+	
+	
 	
 	.macro julia_loop(%a, %b, %rec, %imz)
 	li $v0, 255

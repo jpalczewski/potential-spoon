@@ -1,7 +1,7 @@
 	.include "funcs.asm"
 	.include "bmp.asm"
 	.include "die.asm"
-		
+	.include "colors.asm"
 	.data
 	# 
 	#user-defined parameters
@@ -9,7 +9,7 @@
 	 
 	#files - input, output
 fin:	.asciiz "/home/erxyi/Projekty/_16Z/ARKO/potential-spoon/input_small.bmp"	# input file
-fout:	.asciiz "/home/erxyi/Projekty/_16Z/ARKO/potential-spoon/output2.bmp"	# input file
+fout:	.asciiz "/home/erxyi/Projekty/_16Z/ARKO/potential-spoon/output4.bmp"	# input file
 
 
 #fin:	.asciiz "Z:\\Biblioteka\\Projekty\\potential-spoon\\input.bmp"
@@ -18,9 +18,16 @@ fout:	.asciiz "/home/erxyi/Projekty/_16Z/ARKO/potential-spoon/output2.bmp"	# inp
 		
 	# c value
 .align 4
-c_x:	.word	000001000
-c_y:	.word	000003500
-step:	.word	000001000
+c_x:	.word	0x00233451
+c_y:	.word	0x00423131
+step:	.word	0x00008cAA
+
+
+
+#c_x:	.word	0x00233451
+#c_y:	.word	0x00423131
+#step:	.word	0x000F0AAA
+
 
 .align 4
 stored_x: .space 4
@@ -170,9 +177,12 @@ main:
 	addu $t2, $t1, $s4
 	
 	li $t0, 0
-	li $t6, 0
-	li $t7, 0
+	li $t6, 0xFF000000
+	li $t7, 0xFF000000
 	lw $t8, step
+	move $s6, $s3
+	move $s7, $s4
+	push_s()
 line_start:
 
 	#Usable registers: $t6, $t7, $t8, $t9, $s6, $s7
@@ -194,50 +204,41 @@ line_start:
 	sw $t6, stored_x
 	sw $t7, stored_y
 	
-	push_s()
-	
-	#complex_abs_squared_integer(%dest, %re, %im)
-	complex_abs_squared_integer($s6,$t6, $t7)
-	bgt $s6, 100, colors
-	
-	#przygotowania do wejscia do petli z ucieczka - ladujemy c
 	
 	lw $t4, c_x
 	lw $t5, c_y
 
 	#complex_multiply(%dest_re, %dest_im, %a_re, %a_im, %b_re, %b_im)
-julia_loop:
-	complex_multiply($t6, $t7, $t6, $t7, $t6, $t7)
-	add $t6, $t6, $t4
-	add $t7, $t7, $t5
-	complex_abs_squared_integer($s6,$t6, $t7)
-	subu $t9, $t9, 5
-
-	bltu $t9, 5, colors
-	bge $s6, 100, colors
-	b julia_loop
+	julia_loop($t6, $t7, $t4, $t5)
 	
 	
 colors:
 
+	move $t4, $v0
+	cb($v0)
+	
 	lbu $t3,  ($t1) #blue
-	move $t3, $t9
+	move $t3, $v0
 	sb $t3,	 ($t1)
-
-
+	
+	
+	move $v0, $t4
+	g($v0)
 	lbu $t3,  1($t1) #green
-	move $t3, $t9
+	move $t3, $v0
 	sb $t3,	 1($t1)
 	
+	move $v0, $t4
+	r($v0)
 	lbu $t3,  2($t1) #red
-	move $t3, $t9
+	move $t3, $v0
 	sb $t3,	 2($t1)
 	
 	
 	lw $t6, stored_x
 	lw $t7, stored_y
 	
-	add $t6, $t6, $t8
+	addu $t6, $t6, $t8
 	
 	
 	addiu $t1, $t1, 3
@@ -245,12 +246,12 @@ colors:
 
 line_stop:
 	pop_s()
-	addu $t1, $t1, $s3 #add bmp padding
-	addu $t2, $t1, $s4
+	addu $t1, $t1, $s6 #add bmp padding
+	addu $t2, $t1, $s7
 	addiu $t0, $t0, 1
 	
 	li $t6, 0
-	add $t7, $t7, $t8 #add y padding
+	addu $t7, $t7, $t8 #add y padding
 	
 	bne $t0, $s5, line_start
 
@@ -259,7 +260,7 @@ line_stop:
 
 
 processing_finished:
-	
+	pop_s()
 	#Writing whole file in memory back to disk.
 	li $v0, 15
 	move $a0, $s1
