@@ -18,15 +18,14 @@ fout:	.asciiz "/home/erxyi/Projekty/_16Z/ARKO/potential-spoon/output4.bmp"	# inp
 		
 	# c value
 .align 4
-c_x:	.word	0x00233451
-c_y:	.word	0x00423131
-step:	.word	0x00008cAA
+c_x:	.word	0x0033F351
+c_y:	.word	0x00426131
+step:	.word	0x0000ffAA
 
 
 
 #c_x:	.word	0x00233451
 #c_y:	.word	0x00423131
-#step:	.word	0x000F0AAA
 
 
 .align 4
