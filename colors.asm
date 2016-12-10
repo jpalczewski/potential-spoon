@@ -2,7 +2,7 @@
 
 	.text
 	
-	.macro .multiply_and_recover(%a, %b)
+	.macro multiply_and_recover(%a, %b)
 	mult %a, %b	
 	mflo $s1
 	mfhi $s2
@@ -14,16 +14,17 @@
 	.macro r(%t)
 		li $s3, 0x01000000
 		li $s4, 0x09000000
-		sll %t, 24, 24
+		sll %t, %t, 24
 		srl %t, %t, 8
 		move $s5, %t
 		
-		sub %t $3, %t
+		sub %t $s3, %t
 		multiply_and_recover(%t, $s4)
 		multiply_and_recover(%t, $s5)
 		multiply_and_recover(%t, $s5)
 		multiply_and_recover(%t, $s5)
 		sll %t, %t, 8
+		srl %t, %t, 24
 	.end_macro
 	
 	.macro g(%t)
@@ -33,25 +34,27 @@
 		srl %t, %t, 8
 		move $s5, %t
 		
-		subu $3, $3, %t
+		subu $s3, $s3, %t
 		multiply_and_recover(%t, $s3)
 		multiply_and_recover(%t, $s3)
 		multiply_and_recover(%t, $s4)
 		multiply_and_recover(%t, $s5)
 		sll %t, %t, 8
+		srl %t, %t, 24
 	.end_macro
 	
 	.macro cb(%t)
 		li $s3, 0x01000000
 		li $s4, 0x08800000
-		sll %t, 24, 24
+		sll %t, %t, 24
 		srl %t, %t, 8
 		move $s5, %t
 		
-		sub $3, $3, %t
+		sub $s3, $s3, %t
 		multiply_and_recover(%t, $s3)
 		multiply_and_recover(%t, $s3)
 		multiply_and_recover(%t, $s3)
 		multiply_and_recover(%t, $s4)
 		sll %t, %t, 8
+		srl %t, %t, 24
 	.end_macro

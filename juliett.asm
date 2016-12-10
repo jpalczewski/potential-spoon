@@ -8,7 +8,7 @@
 	#
 	 
 	#files - input, output
-fin:	.asciiz "/home/erxyi/Projekty/_16Z/ARKO/potential-spoon/input_small.bmp"	# input file
+fin:	.asciiz "/home/erxyi/Projekty/_16Z/ARKO/potential-spoon/input.bmp"	# input file
 fout:	.asciiz "/home/erxyi/Projekty/_16Z/ARKO/potential-spoon/output4.bmp"	# input file
 
 
