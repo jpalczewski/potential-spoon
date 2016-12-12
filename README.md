@@ -1,5 +1,5 @@
 # potential-spoon
-Juliett set generator in MIPS assembly.
+Julia set generator in MIPS assembly.
 
 #Gallery
 ![](result - 01.bmp)
