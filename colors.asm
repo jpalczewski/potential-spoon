@@ -12,49 +12,49 @@
 	.end_macro
 	
 	.macro r(%t)
-		li $s3, 0x01000000
-		li $s4, 0x09000000
-		sll %t, %t, 24
-		srl %t, %t, 8
-		move $s5, %t
+	li $s3, 0x01000000
+	li $s4, 0x09000000
+	sll %t, %t, 24
+	srl %t, %t, 8
+	move $s5, %t
 		
-		sub %t $s3, %t
-		multiply_and_recover(%t, $s4)
-		multiply_and_recover(%t, $s5)
-		multiply_and_recover(%t, $s5)
-		multiply_and_recover(%t, $s5)
-		sll %t, %t, 8
-		srl %t, %t, 24
+	sub %t $s3, %t
+	multiply_and_recover(%t, $s4)
+	multiply_and_recover(%t, $s5)
+	multiply_and_recover(%t, $s5)
+	multiply_and_recover(%t, $s5)
+	sll %t, %t, 8
+	srl %t, %t, 24
 	.end_macro
 	
 	.macro g(%t)
-		li $s3, 0x01000000
-		li $s4, 0x0F000000
-		sll %t, %t, 24
-		srl %t, %t, 8
-		move $s5, %t
+	li $s3, 0x01000000
+	li $s4, 0x0F000000
+	sll %t, %t, 24
+	srl %t, %t, 8
+	move $s5, %t
 		
-		subu $s3, $s3, %t
-		multiply_and_recover(%t, $s3)
-		multiply_and_recover(%t, $s3)
-		multiply_and_recover(%t, $s4)
-		multiply_and_recover(%t, $s5)
-		sll %t, %t, 8
-		srl %t, %t, 24
+	subu $s3, $s3, %t
+	multiply_and_recover(%t, $s3)
+	multiply_and_recover(%t, $s3)
+	multiply_and_recover(%t, $s4)
+	multiply_and_recover(%t, $s5)
+	sll %t, %t, 8
+	srl %t, %t, 24
 	.end_macro
 	
 	.macro cb(%t)
-		li $s3, 0x01000000
-		li $s4, 0x08800000
-		sll %t, %t, 24
-		srl %t, %t, 8
-		move $s5, %t
+	li $s3, 0x01000000
+	li $s4, 0x08800000
+	sll %t, %t, 24
+	srl %t, %t, 8
+	move $s5, %t
 		
-		sub $s3, $s3, %t
-		multiply_and_recover(%t, $s3)
-		multiply_and_recover(%t, $s3)
-		multiply_and_recover(%t, $s3)
-		multiply_and_recover(%t, $s4)
-		sll %t, %t, 8
-		srl %t, %t, 24
+	sub $s3, $s3, %t
+	multiply_and_recover(%t, $s3)
+	multiply_and_recover(%t, $s3)
+	multiply_and_recover(%t, $s3)
+	multiply_and_recover(%t, $s4)
+	sll %t, %t, 8
+	srl %t, %t, 24
 	.end_macro

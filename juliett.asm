@@ -1,6 +1,10 @@
+	#a few macros which improves readability
 	.include "funcs.asm"
+	#bmp file header
 	.include "bmp.asm"
+	#PoC of die function from perl 
 	.include "die.asm"
+	#macros related with colors calculation.
 	.include "colors.asm"
 	.data
 	# 
@@ -8,46 +12,39 @@
 	#
 	 
 	#files - input, output
-fin:	.asciiz "/home/erxyi/Projekty/_16Z/ARKO/potential-spoon/input.bmp"	# input file
-fout:	.asciiz "/home/erxyi/Projekty/_16Z/ARKO/potential-spoon/output4.bmp"	# input file
+fin:	.asciiz "/home/erxyi/Projekty/_16Z/ARKO/potential-spoon/input_small.bmp"	# input file
+fout:	.asciiz "/home/erxyi/Projekty/_16Z/ARKO/potential-spoon/output423.bmp"	# input file
 
 
 #fin:	.asciiz "Z:\\Biblioteka\\Projekty\\potential-spoon\\input.bmp"
 #fout:	.asciiz "Z:\\Biblioteka\\Projekty\\potential-spoon\\output.bmp"	# output file
 
+	#Fixed precision format: 0xFF.FFFFFF
+
 		
-	# c value
-.align 4
+	#c value
+	.align 4
 c_x:	.word	0x0033F351
 c_y:	.word	0x00426131
 step:	.word	0x0000ffAA
 
 
 
-#c_x:	.word	0x00233451
-#c_y:	.word	0x00423131
-
+	#End of user-defined parameters
 
 .align 4
 stored_x: .space 4
 stored_y: .space 4
-stored_s0: .space 4
-stored_s1: .space 4
-
-	
-#min_real: 	.word	789
-#min_im:		.word	123
-	
 	
 	.text
 	
 
 
-#mini-dokuemntacja
+#mini-documentation
 
-#przeznaczenie rejestrów:
-#s0-s7 - zmienne/bufory/rejestry trzymane w całej aplikacji
-#t0-t9 - do wykonania jednej, "atomowej" operacji
+#registers:
+#s0-s7 - application-wide(file buffers, etc) registers
+#t0-t9 - simple operations
 
 #$s0 - FILE* input;
 #$s1 - FILE* output;
@@ -156,9 +153,6 @@ main:
 	lw $s5, biHeight
 	
 	
-	#step -1: uwalnianie s0 i s1
-	#sw $s0, stored_s0
-	#sw $s1, stored_s1
 	
 	#Let start processing	
 	# $t0 - offset, $t0 - buffer+offset, line counter
@@ -176,11 +170,12 @@ main:
 	addu $t2, $t1, $s4
 	
 	li $t0, 0
-	li $t6, 0xFF000000
+	li $t6, 0x00000000
 	li $t7, 0xFF000000
 	lw $t8, step
 	move $s6, $s3
 	move $s7, $s4
+	move $t9, $s5
 	push_s()
 line_start:
 
@@ -193,12 +188,6 @@ line_start:
 	# 
 	#z = t6,t7 potem
 	
-	
-	
-	
-	#wyrzucamy x,y z pamieci w celu odzyskania rejestrow
-	
-	li $t9, 255
 	
 	sw $t6, stored_x
 	sw $t7, stored_y
@@ -244,7 +233,6 @@ colors:
 	bne $t1, $t2, line_start
 
 line_stop:
-	pop_s()
 	addu $t1, $t1, $s6 #add bmp padding
 	addu $t2, $t1, $s7
 	addiu $t0, $t0, 1
@@ -252,7 +240,7 @@ line_stop:
 	li $t6, 0
 	addu $t7, $t7, $t8 #add y padding
 	
-	bne $t0, $s5, line_start
+	bne $t0, $t9, line_start
 
 	
 	

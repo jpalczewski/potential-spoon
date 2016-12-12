@@ -14,6 +14,7 @@
 	syscall
 	.end_macro
 	
+	#saves all registers - because file handles isn't necessary during f.e. buffer calculations.  
 	.macro pop_s()
 	lw $s1, s1r
 	lw $s2, s2r
@@ -23,6 +24,7 @@
 	lw $s6, s6r
 	.end_macro
 	
+	#operation complementary to above macro
 	.macro push_s()
 	
 	sw $s1, s1r
@@ -35,31 +37,9 @@
 	.end_macro
 	
 	
-	.macro complex_square(%a, %b)
-	#Dokumenta
-	move $s1, %a
-	mult %a, %a
-	msub %b, %b
-	
-	mfhi $s5
-	mflo $s6
-	and $s5, 0xFFFF
-	sll $s5, $s5, 16
-	srl $s6, $s6, 16
-	or %a, $s5, $s6
-	
-	mult $s1, %b
-	mfhi $s5
-	mflo $s6
-	and $s5, 0xFFFF
-	sll $s5, $s5, 16
-	srl $s6, $s6, 16
-	or %b, $s5, $s6
-	
-	.end_macro
-	
+	# z = z * z + c = a^2 - b^2 + Re(c) + j(xy+Im(c)) 
+	#because of lack of registers addition is done in hi&lo.
 	.macro complex_square_and_add(%a, %b, %rec, %imc)
-	#Dokumenta
 	li $s4, 0x01000000 # by by multiplying c by one we can add it in hi&lo.
 	move $s3, %a
 	mult %a, %a
@@ -83,6 +63,7 @@
 	
 	.end_macro
 	
+	#as name suggest, returns |z|^2 = a^2 + b^2 as integer.
 	.macro complex_abs_squared_integer(%dest, %re, %im)
 	mult %re, %re
 	madd %im, %im
@@ -113,37 +94,8 @@ jl_start:
 jl_end:	
 	.end_macro
 	
-	.macro complex_multiply(%dest_re, %dest_im, %a_re, %a_im, %b_re, %b_im)
-	
-	move $s1, %a_re
-	move $s2, %a_im
-	move $s3, %b_re
-	move $s4, %b_im
-	
-	mult $s1, $s3
-	msub $s2, $s4
-	mfhi $s5
-	mflo $s6
-	and $s5, 0xFFFF
-	sll $s5, $s5, 16
-	srl $s6, $s6, 16
-	or %dest_re, $s5, $s6
-	
-	mult $s1, $s4
-	madd $s2, $s3
-	mfhi $s5
-	mflo $s6
-	and $s5, 0xFFFF
-	sll $s5, $s5, 16
-	srl $s6, $s6, 16
-	or %dest_im, $s5, $s6
-	
-	.end_macro
-	
 	.data
 	
-hello_world:	.asciiz 	"Hello, world!"
-
 .align 4
 s1r:		.space 4
 s2r:		.space 4
